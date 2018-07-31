@@ -1,0 +1,6 @@
+.container { position: relative; width: 80%; height: 80%; margin-left:5% }
+table { font-family: arial, helvetica, san-serif; width:400px; height:400px }
+table, tr, td { border: 1px solid black; text-align:center }
+.tray { position: absolute; top: 0px; left: 435px; width: 55px; height: 400px; border: 2px solid grey }
+.tiles { position: absolute }
+.queens { width: 50px; height: 50px }
