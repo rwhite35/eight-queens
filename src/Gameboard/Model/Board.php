@@ -116,7 +116,7 @@ class Board
      * defines constants used to calculate the diagonal squares 
      * that a queen "occupies" from her current position.
      * 
-     * @return array ConstaintParams
+     * @return array ConstraintParams
      */
     public static function diagonalConstants()
     {

@@ -62,12 +62,28 @@ if( $_GET ) {
 			
 		</script>
 		
+		<style type="text/css">
+		  .tray { background-image: url("img/tray_sm.png") }
+		  .Atile { background-image: url("img/btile_sm.png") }
+		  .hearts { background-image: url("img/hearts.png"); background-size: 57px; }
+		  .spades { background-image: url("img/spades.png"); background-size: 57px; }
+		  .Btile { background-color: #eceaea }
+		</style>
+		
 	</head>
 	<body>
 	
 		<header>
-			<h3>Play Eight Queens</h3>
-			<p>Place each Queen on gameboard so they are not captured by another Queen.</p>
+			<div style="padding-left:30px">
+				<h3><img src="img/clubs.png" alt="Clubs" height=25px>
+				Solve the Eight Queens Puzzle
+				<img src="img/diamonds.png" alt="Diamonds" height=25px></h3>
+			</div>
+			<p>Place each Queen on gameboard so they are not captured by another Queen.<br>
+				A Queen moves in all directions including diagonal to capture her enemies.<br>
+				<span class="hint"><a href="#" id="4hint">Need A Hint?</a></span>
+				<span style="visibility:hidden">Each row and column would only have one Queen.</span>
+			</p>
 		</header>
 		
 		<div class="container">
@@ -75,8 +91,12 @@ if( $_GET ) {
 		</div>
 		
 		<footer>
-			<h4>Check solution?</h4>&nbsp;</h4>
-			<button class="btn_submit" id="submit">Submit</button>
+			<div class="stats">
+				<div class="hearts box"><span class="snum">3</span></div>
+				<div class="spades box"><span class="snum" style="color:#ffffff">1</span></div>
+			</div>
+			<button class="btn_submit" id="submit">Check Solution</button>&nbsp;&nbsp;
+			<button class="btn_clear" id="clear">Try Again</button>
 		</footer>
 	</body>
 </html>

@@ -26,21 +26,21 @@ class CalcDiagonals implements CalcDiagonalsInterface
      * {@inheritDoc}
      * @see \Gameboard\Calculate\Diagonals\CalcDiagonalsInterface::aboveRowLeft()
      */
-    public function aboveRowLeft( int $yCoord, int $xCoord, int $rowsAbove ) : array
+    public function aboveRowLeft( int $yCoord, int $xCoord, int $rowsAbove, int $colsLeft ) : array
     {
         $y = $yCoord;
         $x = $xCoord;
+        $i = ( $colsLeft <= $rowsAbove ) ? $colsLeft : $rowsAbove;
         $coords = [];
-        $ignore = [ 0, Board::$YMax + 1 ];
         
-        $r = $rowsAbove;
-        while ( $r > 0 && $x > 0 ) {
+        do { // evaluate the expression at the end of the iteration for truefullness
+            
             $y = $y + $this->diagContants['Left']['Above']['Y'];
             $x = $x + $this->diagContants['Left']['Above']['X'];
-            if ( $r > 0 || $x > 0 ) $coords[] = $y .",". $x;
-            $r--;
+            if ( $x > 0 ) $coords[] = $y .",". $x; // ignore when X is 0 on first iteration
+            $i--;
             
-        }
+        } while ( $i > 0 );
         
         return $coords;
         
@@ -53,20 +53,21 @@ class CalcDiagonals implements CalcDiagonalsInterface
      * {@inheritDoc}
      * @see \Gameboard\Calculate\Diagonals\CalcDiagonalsInterface::aboveRowRight()
      */
-    public function aboveRowRight( int $yCoord, int $xCoord, int $rowsAbove ) : array
+    public function aboveRowRight( int $yCoord, int $xCoord, int $rowsAbove, int $colsRight ) : array
     {
         $y = $yCoord;
         $x = $xCoord;
+        $i = ( $rowsAbove + $x <= 8 ) ? $rowsAbove : $colsRight;
         $coords = [];
-        $ignore = [ 0, Board::$YMax + 1 ];
         
-        $r = $rowsAbove;
-        while ( $r > 0 && $x < 9 ) {
+        do {
+            
             $y = $y + $this->diagContants['Right']['Above']['Y'];
             $x = $x + $this->diagContants['Right']['Above']['X'];
-            if ( $r > 0 || $x < 9 ) $coords[] = $y .",". $x;
-            $r--;
-        }
+            if ( $x < 9 ) $coords[] = $y .",". $x; // ignore 9 and above on first iteration
+            $i--;
+            
+        } while ( $i > 0 );
         
         return $coords;
         
@@ -79,19 +80,21 @@ class CalcDiagonals implements CalcDiagonalsInterface
      * {@inheritDoc}
      * @see \Gameboard\Calculate\Diagonals\CalcDiagonalsInterface::belowRowLeft()
      */
-    public function belowRowLeft( int $yCoord, int $xCoord, int $rowsBelow ) : array
+    public function belowRowLeft( int $yCoord, int $xCoord, int $rowsBelow, int $colsLeft ) : array
     {
         $y = $yCoord;
         $x = $xCoord;
+        $i = ( $colsLeft <= $rowsBelow ) ? $colsLeft : $rowsBelow;
         $coords = [];
         
-        $r = $yCoord;
-        while ( $r < 9 && $x > 0 ) {
+        do {
+            
             $y = $y + $this->diagContants['Left']['Below']['Y'];
             $x = $x + $this->diagContants['Left']['Below']['X'];
-            if ( $r < 9 || $x > 0 ) $coords[] = $y .",". $x;
-            $r++;
-        }
+            if ( $i > 0 ) $coords[] = $y .",". $x;
+            $i--;
+            
+         } while ( $i > 0  );
         
         return $coords;
         
@@ -101,22 +104,24 @@ class CalcDiagonals implements CalcDiagonalsInterface
      * Y coord increases below the current row (1)
      * X coord increases below the current row (1)
      */
-    public function belowRowRight( int $yCoord, int $xCoord, int $rowsBelow ) : array
+    public function belowRowRight( int $yCoord, int $xCoord, int $rowsBelow, int $colsRight ) : array
     {
         $y = $yCoord;
         $x = $xCoord;
+        $i = ( $rowsBelow + $x <= 8 ) ? $rowsBelow : $colsRight;
         $coords = [];
         
-        $r = $yCoord;
-        while ( $r < 9 && $x < 9 ) {
-             $y = $y + $this->diagContants['Right']['Below']['Y'];
-             $x = $x + $this->diagContants['Right']['Below']['X'];
-             if ( $r < 9 || $x < 9 ) $coords[] = $y .",". $x;
-             $r++;
-         }
+        do { // evaluate the expression at the end of the iteration for truefullness
+            
+            $y = $y + $this->diagContants['Right']['Below']['Y'];
+            $x = $x + $this->diagContants['Right']['Below']['X'];
+            if ($x < 9 ) $coords[] = $y .",". $x; // ignore when X is 9 on first iteration
+            $i--;
+            
+        } while ( $i > 0 );
          
          return $coords;
-        
+         
     }
     
     
