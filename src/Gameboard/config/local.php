@@ -18,10 +18,17 @@ class Module
                             'controller'    => "Gameboard/BoardController"
                         ],
                     ],
+                    'validate' => [
+                        'route' => "/validate",
+                        'defaults'  => [
+                            'model'         => "Gameboard/Model/Validate",
+                        ],
+                    ],
                     'solution' => [
                         'route' => "/solution",
                         'defaults' => [
-                            'view'          => "Gameboard/Solution"
+                            'view'          => "Gameboard/Solution",
+                            
                         ],
                     ],
                     'calcdiagonals' => [
