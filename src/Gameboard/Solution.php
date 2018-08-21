@@ -107,13 +107,18 @@ class Solution extends Board
         /* now that all queens have a complete data sets, 
          * validate the submitted solution */
         $this->ValidateSolution->setProofs( $this->Proofs );
-        $validated = $this->ValidateSolution->validateQueensByChunkTotals();
         
+        $validated = $this->ValidateSolution->validateRowsColumns();
+        
+        if($validated) $resultArr = $this->ValidateSolution
+            ->validateDiagonals( $goodQueenId );
+        
+            
         ob_start();
         
-        if ( isset($validated) ){  
+        if ( isset($resultArr) ){  
             echo "Solutions Validated Proofs: ";
-            print_r($validated);
+            print_r($resultArr);
         }
         
         echo "Queens Proofs Data Set: ";

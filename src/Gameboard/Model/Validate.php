@@ -1,8 +1,6 @@
 <?php
 namespace Gameboard\Model;
 
-use Gameboard;
-
 class Validate
 {
     /**
@@ -46,30 +44,20 @@ class Validate
         
     /**
      * @method validateQueensByChunkTotals
+     * Only checks queens with matching chunked totals. ignores all others
+     * 
      * @todo 20180820, needs refactored using rescursive search function.
      * 
      * @return array QueenSort, hashmap of queens(key) with captured ID's as value
      * * proto Array[ [Q101] => Q105, [Q102] => , [Q103] => Q104,... ]
      */
-    public function validateQueensByChunkTotals()
+    public function validateDiagonals()
     {
-        $foundId = "";
         foreach( $this->CloneProofs['Q'] as $goodQueenId => $goodQueenArr ) {
-            $this->QueenSort[$goodQueenId] = "";
             
-            /* check if another queens occupies the same rows or column */
-            foreach ( $this->CloneProofs['Q'] as $evilQueenId => $evilQueenArr ) {
-                if ( substr($evilQueenId, -1) != substr($goodQueenId, -1) &&
-                    $evilQueenId != $foundId )
-                    if ( $evilQueenArr['Ycoord'] == $goodQueenArr['Ycoord'] ||
-                        $evilQueenArr['Xcoord'] == $goodQueenArr['Xcoord'] )
-                        $this->QueenSort[$goodQueenId] .= $evilQueenId .", ";
-                        $foundId = $evilQueenId;
-            }
-            
-            /* check the diagonals for another queen */
-            if ( is_array( $goodQueenArr['chunked'] ) && !empty( $goodQueenArr['chunked'] ) ) {
-                $foundId = "";
+            if ( is_array( $goodQueenArr['chunked'] ) && 
+                    !empty( $goodQueenArr['chunked'] ) 
+            ) {
                 
                 // for each of good queens chunked values, search for an evil queen match
                 foreach( $goodQueenArr['chunked'] as $gqChunkValue ) {
@@ -80,28 +68,21 @@ class Validate
                         // only check evil queens that have NOT aleady been checked.
                         $eq = substr($evilQueenId, -1);    // ie 3 or 4
                         $gq = substr( $goodQueenId, -1 );    // is 5 or 6
-                        if (  $eq != $gq && $eq > $gq && $evilQueenId != $foundId ) {
-                            
-                            // if evil queen has a chunk total matching good queens, compare coordinates
-                            if( array_search( $gqChunkValue, $evilQueenArr['chunked'], true ) !== false ) {
+                        
+                        if (  $eq != $gq && 
+                              $eq > $gq &&
+                              array_search( $gqChunkValue, $evilQueenArr['chunked'], true ) !== false 
+                            ) {
                                 
-                                // evil queens coordinate
                                 $eqCoord = $this->CloneProofs['Q'][$evilQueenId]['SqrCoord'];
+                                $matched = $this->checkQueensDiagonals( $eqCoord, $goodQueenArr );
                                 
-                                // check this good queens diagonal for a matching evil coordinate
-                                foreach ($goodQueenArr as $gqId => $gqValue) {
+                                if ( $matched === true ) {
+                                    $this->QueenSort[ $goodQueenId ] = (
+                                        array_key_exists($goodQueenId, $this->QueenSort) ) ? 
+                                        $this->QueenSort[ $goodQueenId ] .",". $evilQueenId : $evilQueenId;
                                     
-                                    if ( is_array( $gqValue ) && !empty($gqValue) &&
-                                        array_search( $eqCoord, $gqValue ) !== false ) {
-                                            
-                                            // evil queen can be captured!
-                                            $this->QueenSort[$goodQueenId] .= $evilQueenId .", ";
-                                            $foundId = $evilQueenId;
-                                        }
-                                        
-                                }   // foreach loop check squares
-                                
-                            }   // if evil has a chunked array
+                                }
                             
                         }   // if ckeck evil queen matching chunk total
                         
@@ -119,8 +100,59 @@ class Validate
     
     
     /**
+     * @method checkRowColumns
+     * Checks if an evil queen occupies the same row or
+     * column as the good queen.  If so the evil queen 
+     * can be captured.
+     */
+    public function validateRowsColumns()
+    {
+        foreach( $this->CloneProofs['Q'] as $goodQueenId => $goodQueenArr ) {
+        
+            foreach ( $this->CloneProofs['Q'] as $evilQueenId => $evilQueenArr ) {
+            
+                if ( substr( $evilQueenId, -1 ) != substr( $goodQueenId, -1 ) )
+                    if ( $evilQueenArr['Ycoord'] == $goodQueenArr['Ycoord'] ||
+                        $evilQueenArr['Xcoord'] == $goodQueenArr['Xcoord'] )
+                
+                    $this->QueenSort[$goodQueenId] = ( array_key_exists($goodQueenId, $this->QueenSort) ) ?
+                    ", " . $evilQueenId : $evilQueenId;
+            }
+        }
+        
+        return true;
+        
+    }
+    
+    
+    /**
+     * @method checkQueensDiagonals
+     * Checks if an evil queen occupies the same diagonal
+     * if so, she can be captured.
+     */
+    private function checkQueensDiagonals( string $eqCoord, array $goodQueenArr )
+    { 
+        
+        foreach ($goodQueenArr as $gqId => $gqValue) {
+            
+            if ( is_array( $gqValue ) && !empty($gqValue) &&
+                array_search( $eqCoord, $gqValue ) !== false ) {
+                   return true; // matched, exit on first match 
+                   
+                }
+                
+        }
+        
+        return false;
+        
+    }
+    
+    
+    /**
      * @method queenTakesQueen
-     * Checks if this Queen captured another queen
+     * A brute force check to determine if the good queen can captured another.
+     * will check each square and has a time complexity of O^2.
+     * Once for the qood queen and again as the evil queen.
      *
      * @param string $goodQueenId, this Queens ID ( Q101, Q108, etc )
      *
