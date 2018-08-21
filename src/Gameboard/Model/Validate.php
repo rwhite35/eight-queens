@@ -54,65 +54,64 @@ class Validate
     public function validateQueensByChunkTotals()
     {
         $foundId = "";
-        foreach( $this->CloneProofs['Q'] as $qId => $qArray ) {
-            $this->QueenSort[$qId] = "";
+        foreach( $this->CloneProofs['Q'] as $goodQueenId => $goodQueenArr ) {
+            $this->QueenSort[$goodQueenId] = "";
             
             /* check if another queens occupies the same rows or column */
-            foreach ( $this->CloneProofs['Q'] as $eqKey => $eqArray ) {
-                if ( substr($eqKey, -1) != substr($qId, -1) &&
-                    $eqKey != $foundId )
-                    if ( $eqArray['Ycoord'] == $qArray['Ycoord'] ||
-                        $eqArray['Xcoord'] == $qArray['Xcoord'] )
-                        $this->QueenSort[$qId] .= $eqKey .", ";
-                        $foundId = $eqKey;
+            foreach ( $this->CloneProofs['Q'] as $evilQueenId => $evilQueenArr ) {
+                if ( substr($evilQueenId, -1) != substr($goodQueenId, -1) &&
+                    $evilQueenId != $foundId )
+                    if ( $evilQueenArr['Ycoord'] == $goodQueenArr['Ycoord'] ||
+                        $evilQueenArr['Xcoord'] == $goodQueenArr['Xcoord'] )
+                        $this->QueenSort[$goodQueenId] .= $evilQueenId .", ";
+                        $foundId = $evilQueenId;
             }
             
             /* check the diagonals for another queen */
-            if ( is_array( $qArray['chunked'] ) && !empty( $qArray['chunked'] ) ) {
+            if ( is_array( $goodQueenArr['chunked'] ) && !empty( $goodQueenArr['chunked'] ) ) {
                 $foundId = "";
                 
-                // for each chunk value, search for a match
-                foreach( $qArray['chunked'] as $ckneedle ) {
+                // for each of good queens chunked values, search for an evil queen match
+                foreach( $goodQueenArr['chunked'] as $gqChunkValue ) {
                     
-                    // loop over each enemy queen testing their chunk with this needle.
-                    foreach ( $this->CloneProofs['Q'] as $eqKey => $eqArray ) {
+                    // loop over each evil queen testing her chunk with the good queens search value.
+                    foreach ( $this->CloneProofs['Q'] as $evilQueenId => $evilQueenArr ) {
                         
-                        // only check queens that have not aleady been checked.
-                        $e = substr($eqKey, -1);    // ie 3 or 4
-                        $q = substr( $qId, -1 );    // is 5 or 6
-                        if (  $e != $q && $e > $q && $eqKey != $foundId ) {
+                        // only check evil queens that have NOT aleady been checked.
+                        $eq = substr($evilQueenId, -1);    // ie 3 or 4
+                        $gq = substr( $goodQueenId, -1 );    // is 5 or 6
+                        if (  $eq != $gq && $eq > $gq && $evilQueenId != $foundId ) {
                             
-                            // if enemy queen has a chunk total matching ours, check her coordinates
-                            if( array_search( $ckneedle, $eqArray['chunked'], true ) !== false ) {
+                            // if evil queen has a chunk total matching good queens, compare coordinates
+                            if( array_search( $gqChunkValue, $evilQueenArr['chunked'], true ) !== false ) {
                                 
-                                // get enemy queens coordinate
-                                $eqCoordNeedle = $this->CloneProofs['Q'][$eqKey]['SqrCoord'];
+                                // evil queens coordinate
+                                $eqCoord = $this->CloneProofs['Q'][$evilQueenId]['SqrCoord'];
                                 
-                                // check this queens diagonals for a matching enemy coordinate
-                                foreach ($qArray as $qqId => $qqValue) {
+                                // check this good queens diagonal for a matching evil coordinate
+                                foreach ($goodQueenArr as $gqId => $gqValue) {
                                     
-                                    if ( is_array( $qqValue ) && !empty($qqValue) &&
-                                        array_search( $eqCoordNeedle, $qqValue ) !== false ) {
+                                    if ( is_array( $gqValue ) && !empty($gqValue) &&
+                                        array_search( $eqCoord, $gqValue ) !== false ) {
                                             
-                                            // the enemy queens id, she can be captured!
-                                            $this->QueenSort[$qId] .= $eqKey .", ";
-                                            $foundId = $eqKey;
+                                            // evil queen can be captured!
+                                            $this->QueenSort[$goodQueenId] .= $evilQueenId .", ";
+                                            $foundId = $evilQueenId;
                                         }
                                         
                                 }   // foreach loop check squares
                                 
-                            }   // if enemy has a chunked array that matches our chunk number,
-                            // check their coordinates for possible capture.
+                            }   // if evil has a chunked array
                             
-                        }   // if not ourself, ckeck for enemy queen matching chunk total
+                        }   // if ckeck evil queen matching chunk total
                         
-                    }   // foreach loop eqKey
+                    }   // foreach loop evilQueenId
                     
                 }       // foreach loop chunked k value
                 
-            }    // if qArray chunked
+            }    // if goodQueen chunked array
             
-        }       // foreach loop qId
+        }       // foreach loop goodQueenId
         
         return $this->QueenSort;
         
@@ -123,7 +122,7 @@ class Validate
      * @method queenTakesQueen
      * Checks if this Queen captured another queen
      *
-     * @param string $qId, this Queens ID ( Q101, Q108, etc )
+     * @param string $goodQueenId, this Queens ID ( Q101, Q108, etc )
      *
      * @param array $queenKeys, enumerated array of queen keys
      * * proto Array[ 0 => Q101,..., 7 => Q108 ]
@@ -137,21 +136,21 @@ class Validate
      *
      * @return boolean true when she can capture another queen
      */
-    private function queenTakesQueen( string $qId, array $queenKeys, array $qSqrId, array $matrix )
+    private function queenTakesQueen( string $goodQueenId, array $queenKeys, array $qSqrId, array $matrix )
     {
         $capture        = false;
-        $enemyCoords    = [];
+        $evilQueenId    = [];
         
         /* compare queens coordinates with this Queens movable spaces */
         for ( $i = 0; $i < count($queenKeys); $i++ ) {
-            if ( $qId == $queenKeys[$i] ) {
+            if ( $goodQueenId == $queenKeys[$i] ) {
                 continue;           // don't check this Queen
                 
-            } else {                // get enemy queens coord
-                $enemyCoords = $this->searchRecursively( $matrix, $qSqrId[$i], $queenKeys[$i] );
+            } else {                // get evil queens coord
+                $evilQueenId = $this->searchRecursively( $matrix, $qSqrId[$i], $queenKeys[$i] );
                 
-                error_log( __LINE__ .": the enemy queen " . $queenKeys[$i] .
-                    " coordinates are " . $enemyCoords[ $queenKeys[$i] ] .
+                error_log( __LINE__ .": the evil queen " . $queenKeys[$i] .
+                    " coordinates are " . $evilQueenId[ $queenKeys[$i] ] .
                     " for the space with id " . $qSqrId[$i] );
             }
         }
@@ -163,14 +162,14 @@ class Validate
     
     /**
      * @method searchRecursively
-     * Recurse down through each row and column to return the enemy
+     * Recurse down through each row and column to return the evil
      * queens coordinates for the square she occupies.
      *
      * @param array $matrix, enumerated multidim array on the gameboard, see Model.
      *
      * @param string $needle, the square id to check ex. square id "U" = Y3,X5 coords
      *
-     * @return array $coords hashmap of enemy queens square id as key and coords as value
+     * @return array $coords hashmap of evil queens square id as key and coords as value
      * * proto Array[ Q103 => 3,5 ]
      */
     private function searchRecursively( array $matrix, string $needle, string $qKey )

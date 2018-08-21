@@ -58,9 +58,10 @@ class Solution extends Board
     
     /**
      * Takes game board input and checks the players solution
-     * based on each Queens position in relationship to each other queen. 
-     * If an enemy queen occupies a space that can be captured, 
-     * the condition is not satisfied and the solution fails.
+     * based on each Queens (good queen) position in relationship to 
+     * each other queen (evil queens). 
+     * If an evil queen occupies a space that can be captured by the
+     * good queen, the condition is not satisfied and the solution fails.
      * 
      * On submit(JSON): 
      * * [{"queens":"Q101,Q102,Q103,Q104,Q105,Q106,Q107,Q108","spaces":"G,M,X,Y,AI,AT,AX,BH"}]
@@ -76,30 +77,30 @@ class Solution extends Board
         /* Outer loop over each Queen. Only loops over each Queen once
          * and has a time complexity of O^1 (continous time).
          */
-        foreach( $queenKeys as $k => $qId ) {
+        foreach( $queenKeys as $k => $goodQueenId ) {
             
-            $this->Proofs['Q'][$qId]['SqrId'] = $qSqrId[$k];
+            $this->Proofs['Q'][$goodQueenId]['SqrId'] = $qSqrId[$k];
             
             /* Inner loop assign Queens coordinates and square ID. */
             foreach( $matrix[$row] as $col => $mSqrId ) {
                 
-                if( $this->Proofs['Q'][$qId]['SqrId'] == $mSqrId ) {
-                    $this->Proofs['Q'][$qId]['SqrCoord']    = $row .",". $col;
-                    $this->Proofs['Q'][$qId]['Ycoord']      = $row;
-                    $this->Proofs['Q'][$qId]['Xcoord']      = $col;
+                if( $this->Proofs['Q'][$goodQueenId]['SqrId'] == $mSqrId ) {
+                    $this->Proofs['Q'][$goodQueenId]['SqrCoord']    = $row .",". $col;
+                    $this->Proofs['Q'][$goodQueenId]['Ycoord']      = $row;
+                    $this->Proofs['Q'][$goodQueenId]['Xcoord']      = $col;
                 }
                 
                 if( $col == Board::$XMax ) $row++;  // move internal pointer to next row
             }
             
             /* calculate relative position to the game board */
-            $this->calcRelativePosition( $qId );
+            $this->calcRelativePosition( $goodQueenId );
             
             /* calculate diagonal spaces Queen can move */ 
-            $this->calcDiagonals( $qId );
+            $this->calcDiagonals( $goodQueenId );
             
             /* reduce coords into chunks for quick search validation */
-            $this->chunkCoords( $qId );
+            $this->chunkCoords( $goodQueenId );
          
         } // close outer foreach queen
         
@@ -132,44 +133,44 @@ class Solution extends Board
      *  
      * @return void
      */
-    private function calcRelativePosition( string $qId )
+    private function calcRelativePosition( string $goodQueenId )
     {
            $yLessOne    = Board::$YMax - 1;
            $xLessOne    = Board::$XMax - 1;
            
-           $this->Proofs['Q'][$qId]['rowsAbove']    = '';
-           $this->Proofs['Q'][$qId]['rowsBelow']    = '';
-           $this->Proofs['Q'][$qId]['colsLeft']     = '';
-           $this->Proofs['Q'][$qId]['colsRight']    = '';
-           $this->Proofs['Q'][$qId]['ydLeftAbv']    = [];
-           $this->Proofs['Q'][$qId]['ydRightAbv']   = [];
-           $this->Proofs['Q'][$qId]['ydLeftBlw']    = [];
-           $this->Proofs['Q'][$qId]['ydRightBlw']   = [];
+           $this->Proofs['Q'][$goodQueenId]['rowsAbove']    = '';
+           $this->Proofs['Q'][$goodQueenId]['rowsBelow']    = '';
+           $this->Proofs['Q'][$goodQueenId]['colsLeft']     = '';
+           $this->Proofs['Q'][$goodQueenId]['colsRight']    = '';
+           $this->Proofs['Q'][$goodQueenId]['ydLeftAbv']    = [];
+           $this->Proofs['Q'][$goodQueenId]['ydRightAbv']   = [];
+           $this->Proofs['Q'][$goodQueenId]['ydLeftBlw']    = [];
+           $this->Proofs['Q'][$goodQueenId]['ydRightBlw']   = [];
           
            
            /* calculate the rows above this square */
-           $rowsAbove  =  ( $this->Proofs['Q'][$qId]['Ycoord'] == 1 ) 
-            ? 0 : $yLessOne - ( Board::$YMax - $this->Proofs['Q'][$qId]['Ycoord'] );
+           $rowsAbove  =  ( $this->Proofs['Q'][$goodQueenId]['Ycoord'] == 1 ) 
+            ? 0 : $yLessOne - ( Board::$YMax - $this->Proofs['Q'][$goodQueenId]['Ycoord'] );
            
-            $this->Proofs['Q'][$qId]['rowsAbove']  = $rowsAbove;
+            $this->Proofs['Q'][$goodQueenId]['rowsAbove']  = $rowsAbove;
            
             
            /* calculate the rows below this square */
-           $rowsBelow  =  Board::$YMax - $this->Proofs['Q'][$qId]['Ycoord'];
+           $rowsBelow  =  Board::$YMax - $this->Proofs['Q'][$goodQueenId]['Ycoord'];
            
-           $this->Proofs['Q'][$qId]['rowsBelow']   = $rowsBelow;
+           $this->Proofs['Q'][$goodQueenId]['rowsBelow']   = $rowsBelow;
            
            
            /* calculate the columns to the left of this square */
-           $colsLeft    =  ( $this->Proofs['Q'][$qId]['Xcoord'] == 1 ) 
-            ? 0 : $xLessOne - ( Board::$XMax - $this->Proofs['Q'][$qId]['Xcoord'] );
+           $colsLeft    =  ( $this->Proofs['Q'][$goodQueenId]['Xcoord'] == 1 ) 
+            ? 0 : $xLessOne - ( Board::$XMax - $this->Proofs['Q'][$goodQueenId]['Xcoord'] );
            
-            $this->Proofs['Q'][$qId]['colsLeft']   = $colsLeft;
+            $this->Proofs['Q'][$goodQueenId]['colsLeft']   = $colsLeft;
             
            /* calculate the columns to the right of the square */
-           $colsRight   =  Board::$XMax - $this->Proofs['Q'][$qId]['Xcoord'];
+           $colsRight   =  Board::$XMax - $this->Proofs['Q'][$goodQueenId]['Xcoord'];
            
-           $this->Proofs['Q'][$qId]['colsRight']   = $colsRight;
+           $this->Proofs['Q'][$goodQueenId]['colsRight']   = $colsRight;
 
     }
     
@@ -180,26 +181,26 @@ class Solution extends Board
      * If another queen occupies a space on any diagonal
      * that can be captured, the solution fails.
      * 
-     * @param string $qId, this queens id (Q101, Q108 etc)
+     * @param string $goodQueenId, this queens id (Q101, Q108 etc)
      * 
      * @return void, updates class property Proofs
      */
-    private function calcDiagonals( string $qId )
+    private function calcDiagonals( string $goodQueenId )
     {
         $calculated =   [ 'rowsAbove' => false, 'rowsBelow' => false ];
-        $rowsAbove  =   $this->Proofs['Q'][$qId]['rowsAbove'];
-        $rowsBelow  =   $this->Proofs['Q'][$qId]['rowsBelow'];
-        $colsLeft   =   $this->Proofs['Q'][$qId]['colsLeft'];
-        $colsRight  =   $this->Proofs['Q'][$qId]['colsRight'];
-        $qYcoord    =   $this->Proofs['Q'][$qId]['Ycoord'];
-        $qXcoord    =   $this->Proofs['Q'][$qId]['Xcoord'];
+        $rowsAbove  =   $this->Proofs['Q'][$goodQueenId]['rowsAbove'];
+        $rowsBelow  =   $this->Proofs['Q'][$goodQueenId]['rowsBelow'];
+        $colsLeft   =   $this->Proofs['Q'][$goodQueenId]['colsLeft'];
+        $colsRight  =   $this->Proofs['Q'][$goodQueenId]['colsRight'];
+        $qYcoord    =   $this->Proofs['Q'][$goodQueenId]['Ycoord'];
+        $qXcoord    =   $this->Proofs['Q'][$goodQueenId]['Xcoord'];
         
         /* calcuate the left and right diagonals above this row */
         if ( $rowsAbove > 0 ) {
-            $this->Proofs['Q'][$qId]['ydLeftAbv'] = 
+            $this->Proofs['Q'][$goodQueenId]['ydLeftAbv'] = 
                 $this->Diagonal->aboveRowLeft( $qYcoord, $qXcoord, $rowsAbove, $colsLeft );
             
-            $this->Proofs['Q'][$qId]['ydRightAbv'] = 
+            $this->Proofs['Q'][$goodQueenId]['ydRightAbv'] = 
                 $this->Diagonal->aboveRowRight( $qYcoord, $qXcoord, $rowsAbove, $colsRight );
                     
             $calculated['rowsAbove'] = true;
@@ -208,10 +209,10 @@ class Solution extends Board
         
         /* calculate the left and right diagonals below this row */
         if ( $rowsBelow > 0 ) {
-            $this->Proofs['Q'][$qId]['ydLeftBlw'] =
+            $this->Proofs['Q'][$goodQueenId]['ydLeftBlw'] =
                 $this->Diagonal->belowRowLeft( $qYcoord, $qXcoord, $rowsBelow, $colsLeft );
 
-            $this->Proofs['Q'][$qId]['ydRightBlw'] =
+            $this->Proofs['Q'][$goodQueenId]['ydRightBlw'] =
                 $this->Diagonal->belowRowRight( $qYcoord, $qXcoord, $rowsBelow, $colsRight );
             
             $calculated['rowsBelow'] = true;
@@ -226,7 +227,7 @@ class Solution extends Board
      * matching chunked totals are searched for matching coordinates.
      * when found, the queens violate the cronstaint and the solution fails.
      * 
-     * @param string $qId, this Queens id (Q101, Q104 etc)
+     * @param string $goodQueenId, this Queens id (Q101, Q104 etc)
      * 
      * @var array $allCoords, enumerated array of string coordinates
      * * proto Array[ [0]=>"1,4", [1]=>"2,3",...,[9]=>"6,8" ]
@@ -234,19 +235,19 @@ class Solution extends Board
      * @return void, updates class property Proofs
      * 
      */
-    private function chunkCoords( string $qId )
+    private function chunkCoords( string $goodQueenId )
     {
         $chunked    = [];
-        $allCoords  = [ $this->Proofs['Q'][$qId]['SqrCoord'] ];
-        $keys       = array_keys( $this->Proofs['Q'][$qId] );
+        $allCoords  = [ $this->Proofs['Q'][$goodQueenId]['SqrCoord'] ];
+        $keys       = array_keys( $this->Proofs['Q'][$goodQueenId] );
             
         /* loop through each elements, if array, get the coords */
         foreach( $keys as $k ) {
-            if (  is_array( $this->Proofs['Q'][$qId][$k]) ) {
-                $c = count( $this->Proofs['Q'][$qId][$k] );
+            if (  is_array( $this->Proofs['Q'][$goodQueenId][$k]) ) {
+                $c = count( $this->Proofs['Q'][$goodQueenId][$k] );
                 if( $c > 0 ) {
                     for ( $i=0; $i < $c; $i++ ) {
-                        $allCoords[] = $this->Proofs['Q'][$qId][$k][$i];
+                        $allCoords[] = $this->Proofs['Q'][$goodQueenId][$k][$i];
                     }
                 }
             }
@@ -268,7 +269,7 @@ class Solution extends Board
         }
         
         /* append the chunked totals to this queens data set */
-        $this->Proofs['Q'][$qId]['chunked'] = $chunked;
+        $this->Proofs['Q'][$goodQueenId]['chunked'] = $chunked;
     }
     
     
